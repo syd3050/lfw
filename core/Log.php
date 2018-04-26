@@ -29,6 +29,7 @@ class Log
     /**
      * 日志初始化,默认以文件为驱动
      * @param array $config
+     * @throws Exception
      */
     public static function init($config = [])
     {
@@ -39,7 +40,7 @@ class Log
         if (class_exists($class)) {
             self::$driver = new $class($config);
         } else {
-            throw new \Exception('class not exists:' . $class);
+            throw new Exception('class not exists:' . $class);
         }
     }
 

@@ -1,9 +1,6 @@
 <?php
 namespace core;
 
-use core\Log;
-use core\Base;
-
 class App extends Base
 {
 	private static $_url;
@@ -79,7 +76,7 @@ class App extends Base
 		try{
 			//派发请求,获取处理结果
 			$content = self::_dispatch($controller,$action,$otherParams);
-		}catch(\Exception $e) {
+		}catch(Exception $e) {
 			$exception = true;
 			$content = $e->getMessage();
 		}

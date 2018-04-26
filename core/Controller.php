@@ -1,8 +1,6 @@
 <?php
 namespace core;
 
-use core\Base;
-
 class Controller extends Base
 {
 	protected $params;
@@ -95,7 +93,7 @@ class Controller extends Base
         if(is_file($viewPath)) {
             return file_get_contents($viewPath);
         }
-        throw new \Exception("页面".DS.$controller.$view.DS.'index.html不存在');
+        throw new Exception("页面".DS.$controller.$view.DS.'index.html不存在');
     }
 
 	/*

@@ -1,7 +1,6 @@
 <?php
 namespace core;
 
-use core\Log;
 
 class Util
 {
@@ -24,7 +23,7 @@ class Util
         return ltrim($r,'&');
     }
 
-    private static function _curlInit($url, $data = [], $headers = [], $method=self::GET)
+    private static function _curlInit($url, $data = [], $headers = [], $method=self::GET, $opt=[])
     {
         //$url = self::$_host . $url;
         $ch  = curl_init();
@@ -32,11 +31,12 @@ class Util
             $queryString = self::buildQuery($data);
             strpos($url, '?') ? $url .= "&$queryString": $url .= "?$queryString";
         }else{
+            curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         }
         curl_setopt($ch, CURLOPT_URL, $url);
         empty($headers) || curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); //设置header
-        
+        //empty($opt) || curl_setopt_array($ch, $opt);
         curl_setopt_array($ch, self::$_opt);
 
         return $ch;
@@ -66,7 +66,7 @@ class Util
         return $result;
     }
 
-    public static function send($url, $data = [], $headers = [], $method=self::GET)
+    public static function send($url, $data = [], $headers = [], $method=self::GET, $opt=[])
     {
         $ch = self::_curlInit($url, $data, $headers, $method);
         $response = curl_exec($ch);
@@ -106,15 +106,7 @@ class Util
 
         //所有请求全部接收完毕后$active变为false
         while ($active && $mrc == CURLM_OK) {
-           do {$mrc = curl_multi_exec($mh, $active);} while ($mrc == CURLM_CALL_MULTI_PERFORM);
-           if (curl_multi_select($mh) !== -1) {
-                do {
-                    $mrc = curl_multi_exec($mh, $active);
-                } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-            }
-
-            /*
-                         //select可防止CPU空转，在select函数内部会监听FD，当在FD上有数据时才读取，其他情况下休眠
+            //select可防止CPU空转，在select函数内部会监听FD，当在FD上有数据时才读取，其他情况下休眠
             if (curl_multi_select($mh) === -1) {
                 //当select返回-1时，主动休眠100微秒再检测
                 usleep(100);
@@ -123,10 +115,6 @@ class Util
             do {
                 $mrc = curl_multi_exec($mh, $active);
             } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-            */
-
-
-
         }
 
         foreach ($urls as $i => $url) {

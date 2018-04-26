@@ -1,5 +1,6 @@
 <?php
 namespace core\log\driver;
+use core\Util;
 
 /**
  */
@@ -214,7 +215,7 @@ class Socket
      * @param string $host - $host of socket server
      * @param string $message - 发送的消息
      * @param string $address - 地址
-     * @return bool
+     * @return bool|null
      */
     protected function send($host, $message = '', $address = '/')
     {
@@ -226,11 +227,14 @@ class Socket
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $opts = [
+
+        ];
         $headers = [
             "Content-Type: application/json;charset=UTF-8",
         ];
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); //设置header
-        return curl_exec($ch);
+        Util::send($url,[$message],$headers,Util::POST);
     }
 
 }
