@@ -10,6 +10,7 @@ class App extends Base
 		self::$_url = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 		$params = trim($_SERVER["REQUEST_URI"],'/');
 		$params = explode('/',$params);
+		//die(json_encode($params));
 		if(count($params) < 2) {
 		    $controller = Config::get('default.controller');
 		    $action = Config::get('default.action');
@@ -27,6 +28,7 @@ class App extends Base
 				$otherParams[$k] = $v;
 			}
 		}
+		empty($otherParams) && $otherParams = $params;
 		return [$controller,$action,$otherParams];
 	}
 
@@ -51,7 +53,8 @@ class App extends Base
 			$controllerObj->activity = $action;
 			$action = 'index';
 		}
-		return $controllerObj->$action();
+		return call_user_func_array([$controllerObj,$action],$otherParams);
+		//return $controllerObj->$action();
 	}
 
 	private static function _sessionInit()
@@ -76,13 +79,14 @@ class App extends Base
 		try{
 			//派发请求,获取处理结果
 			$content = self::_dispatch($controller,$action,$otherParams);
+            $content = json_encode($content);
 		}catch(Exception $e) {
 			$exception = true;
 			$content = $e->getMessage();
 		}
 		header("Content-Type:text/html; charset=utf-8");
 		echo $content;
-		$exception ? self::after('处理异常,信息：'.$content,function($msg){
+		$exception ? self::after("处理异常,信息：$content",function($msg){
 			Log::error($msg);
 		}) : self::after('处理结束',function($msg){
 			Log::info($msg);

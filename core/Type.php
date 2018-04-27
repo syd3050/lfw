@@ -14,5 +14,8 @@ class Type
     //框架异常代码
     const F_ERROR = -1;
 
+    const SUCCESS = 0;
+    const FAIL = 1;
+
     const K_NAMESPACE = 'namespace';
 }

@@ -116,7 +116,11 @@ class Controller extends Base
 
 	protected function ajaxReturn($result,$options=0,$charset='utf-8')
     {
+        $content = json_encode($result,$options);
         header("Content-Type:text/html; charset=$charset");
-        exit(json_encode($result,$options));
+        echo $content;
+        self::after("处理结束信息：$content",function($msg){
+            Log::info($msg);
+        });
     }
 }

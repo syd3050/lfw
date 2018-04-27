@@ -13,5 +13,14 @@ return [
         'core' => 'core\\',
         'controller' => 'app\\controller\\',
         'log'  =>  'core\\log\\',
+        'model'=>  'app\\model',
+    ],
+    'database' => [
+        'type'    => 'mysql',
+        'dbname'  => 'test',
+        'host'    => 'localhost',
+        'username'=> 'root',
+        'password'=> '',
+        'charset' => 'utf8'
     ],
 ];
