@@ -1,11 +1,14 @@
 <?php
 namespace core;
 
+use app\model\BaseModel;
+
 class Controller extends Base
 {
 	protected $params;
 	public $activity = null;
 	public $headers = [];
+	private static $_models = [];
 
 	public function header($key)
 	{
@@ -96,13 +99,26 @@ class Controller extends Base
         throw new Exception("页面".DS.$controller.$view.DS.'index.html不存在');
     }
 
-	/*
-	 *跳转
-	 *@param $url 目标地址
-	 *@param $info 提示信息
-	 *@param $sec 等待时间
-	 *return void
-	*/
+    public function __get($name)
+    {
+        if(isset(self::$_models[$name]))
+            return self::$_models[$name];
+        $namespace = Config::get('namespace.model');
+        if(empty($namespace))
+            throw new Exception("model命名空间没有配置");
+        $class = $namespace.$name;
+        if(class_exists($class))
+            return self::$_models[$name] = new $class();
+        return self::$_models[$name] = new BaseModel(['table'=>$name]);
+    }
+
+    /*
+     *跳转
+     *@param $url 目标地址
+     *@param $info 提示信息
+     *@param $sec 等待时间
+     *return void
+    */
 	protected function redirect($url,$info=null,$sec=3)
 	{
 		 if(is_null($info)){

@@ -2,6 +2,7 @@
 namespace app\model;
 
 use core\DB;
+use core\Type;
 
 class BaseModel
 {
@@ -12,12 +13,18 @@ class BaseModel
     {
         $db_config = isset($config['database']) ? $config['database'] : [];
         $this->_db = new DB($db_config);
-        $this->_table || $this->_table = get_class($this);
-        $arr = explode('\\',$this->_table);
-        $this->_table = end($arr);
+        if(isset($config['table'])) {
+            $this->_table = $config['table'];
+        }else{
+            $this->_table = get_class($this);
+            $arr = explode('\\',$this->_table);
+            $this->_table = end($arr);
+        }
+        $pos = strpos($this->_table,'Model');
+        $pos &&  $this->_table = substr($this->_table,0,$pos);
     }
 
-    protected function insert($data)
+    public function add($data)
     {
         $insertId = $this->_db->insert($this->_table,$data);
         return $insertId;
@@ -31,6 +38,17 @@ class BaseModel
     public function queryAll($columns='*',$conditions=[])
     {
         return $this->_db->queryAll($this->_table,$columns,$conditions);
+    }
+
+    /**
+     * 直接执行sql语句查询
+     * @param $sql
+     * @param $params
+     * @return array
+     */
+    public function sqlQuery($sql, $params=[])
+    {
+        return $this->_db->sqlQuery($sql,$params);
     }
 
     /**
@@ -50,4 +68,15 @@ class BaseModel
     {
         return $this->_db->update($this->_table,$params,$conditions);
     }
+
+    public function exec($sql,$params)
+    {
+        return $this->_db->execute($sql,$params);
+    }
+
+    public function send($url,$params)
+    {
+        return [Type::SUCCESS,''];
+    }
+
 }

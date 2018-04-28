@@ -132,6 +132,11 @@ class DB
         return $r;
     }
 
+    public function sqlQuery($sql, $params)
+    {
+        return $this->fetchAll($sql,$params);
+    }
+
 /*    public function exists($sql, $parameters=[])
     {
         $this->lastSQL = $sql;
@@ -175,7 +180,7 @@ class DB
     private function _conditionParse($conditions)
     {
         if(empty($conditions))
-            return ['',''];
+            return ['',[]];
         $params = [];
         $cond_keys = array_keys($conditions);
         foreach ($cond_keys as $k => $cond_key) {

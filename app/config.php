@@ -13,7 +13,8 @@ return [
         'core' => 'core\\',
         'controller' => 'app\\controller\\',
         'log'  =>  'core\\log\\',
-        'model'=>  'app\\model',
+        'model'=>  'app\\model\\',
+        'cache'=>  'core\\cache\\',
     ],
     'database' => [
         'type'    => 'mysql',
@@ -22,5 +23,11 @@ return [
         'username'=> 'root',
         'password'=> '',
         'charset' => 'utf8'
+    ],
+    'cache' => [
+        'type'     => 'redis',
+        'host'     => '127.0.0.1',
+        'port'     => '6379',
+        'password' => '111111',
     ],
 ];
