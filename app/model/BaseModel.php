@@ -6,7 +6,7 @@ use core\Type;
 
 class BaseModel
 {
-    private $_db;
+    protected $_db;
     private $_table;
 
     public function __construct($config=[])
