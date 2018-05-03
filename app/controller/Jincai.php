@@ -101,25 +101,59 @@ class Jincai extends Controller
         $end = $start + rand(1,7);
         $sid = rand(1,20);
         $status = rand(0,1);
+        $count = 3;
         $data = [
             'title'     => randStr(10),
             'addition'  => randStr(20),
-            'start'     => date('y-m-d h:i:s',strtotime("+$start day")),
+            'start'     => date('Y-m-d h:i:s',strtotime("+$start day")),
             'end'       => date("Y-m-d h:i:s",strtotime("+$end day")),
             'sid'       => $sid,
-            'f_title'   => randStr(20),
-            'f_content' => randStr(30),
             'status'    => $status,
-            'create_time' => date('y-m-d h:i:s',time()),
+            'rule_title'   => randStr(20),
+            'rule_content' => randStr(30),
+            'create_time'  => date('Y-m-d h:i:s',time()),
+            'update_time'  => date('Y-m-d h:i:s',time()),
+            'operator'     => 1,
         ];
+        while ($count) {
+            $all_max = rand(1000,10000);
+            $data['items'][] = [
+                'name' => randStr(10),
+                'rate' => rand(1,100)/100,
+                'single_max'  => rand(100,1000),
+                'all_max'     => $all_max,
+                'left_all'    => $all_max,
+                'create_time' => date('Y-m-d h:i:s',time()),
+            ];
+            $count--;
+        }
         return $data;
     }
 
     public function addProject()
     {
         $data = $this->_project_new();
-        $id = $this->ProjectModel->add($data);
-        $this->ajaxReturn(['status'=>Type::SUCCESS,'id'=>$id]);
+        $id = $this->Contest->addProject($data);
+        $status = Type::FAIL;
+        $id && $status = Type::SUCCESS;
+        $this->ajaxReturn(['status'=>$status,'id'=>$id]);
+    }
+
+    public function updateProject()
+    {
+        $data = $this->_project_new();
+        $data['id'] = 3;
+        $i = 3;
+        foreach ($data['items'] as $k=>$item) {
+            $data['items'][$k]['id'] = $i;
+            $i++;
+            unset($data['items'][$k]['create_time']);
+        }
+        unset($data['create_time']);
+        $r = $this->Contest->updateProject($data,['id'=>$data['id']]);
+        $status = Type::FAIL;
+        $r && $status = Type::SUCCESS;
+        $this->ajaxReturn(['status'=>$status]);
     }
 
     private function _user_item_new()
@@ -148,11 +182,13 @@ class Jincai extends Controller
         $this->ajaxReturn(['status'=>$r,'msg'=>$msg]);
     }
 
-    public function rt()
+    public function updateBc()
     {
-        $k = '1_1';
-        $limit = 200;
-        $r = Cache::setNx($k,$limit);
-        $this->ajaxReturn(['status'=>$r]);
+        $this->ajaxReturn($this->Contest->updateBc());
+    }
+
+    public function ta()
+    {
+
     }
 }

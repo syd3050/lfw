@@ -37,7 +37,7 @@ class User_item extends BaseModel
             if(!$result) {
                 throw new Exception('投注失败，已超过上限');
             }
-            //本项投注成功后：1.向Java后台发送扣积分请求，2.将本次积分消费写入记录
+            //本项投注成功后：1.将本次积分消费写入记录，2.向Java后台发送扣积分请求
             $result = $this->_updateMain();
             $this->_db->commit();
         }catch (Exception $e) {
@@ -108,35 +108,34 @@ class User_item extends BaseModel
 
     private function _updateMain()
     {
-        //1.向Java请求积分减项
-        $params = [
-            'uid'  => $this->_uid,
-            'value'=> intval('-'.$this->_value),
-        ];
-        list($success,$msg) = $this->_request($params);
-        //Java后台不允许本次减项操作
-        if(!$success) {
-            throw new Exception($msg);
-        }
-        //2.在积分消费记录中插入本次投注
+        //1.在积分消费记录中插入本次投注
         $record = new Record();
-        $rd = [
-            'uid'  => $this->_uid,
-            'value'=> intval('-'.$this->_value),
-            'bid'  => $this->_tid,
-            'create_time'  => date('y-m-d h:i:s',time()),
-        ];
         try{
-            $record->add($rd);
+            $record->add([
+                'uid'  => $this->_uid,
+                'value'=> intval('-'.$this->_value),
+                'bid'  => $this->_tid,
+                'create_time'  => date('y-m-d h:i:s',time()),
+            ]);
         }catch (Exception $e) {
             Log::error(__CLASS__."::".__FUNCTION__.",code:".$e->getCode().',msg:'.$e->getMessage());
             throw new Exception('数据库异常，新增该积分消费记录失败');
         }
+        //2.向Java请求积分减项
+        list($success,$msg) = $this->_request();
+        //Java后台不允许本次减项操作
+        if(!$success) {
+            throw new Exception($msg);
+        }
         return [Type::SUCCESS,''];
     }
-    
-    private function _request($params)
+
+    private function _request()
     {
+        $params = [
+            'uid'  => $this->_uid,
+            'value'=> intval('-'.$this->_value),
+        ];
         return $this->send('',$params);
     }
 }

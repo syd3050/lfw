@@ -30,6 +30,11 @@ class BaseModel
         return $insertId;
     }
 
+    public function addBatch($data)
+    {
+        return $this->_db->insertBatch($this->_table,$data);
+    }
+
     public function query($id)
     {
         return $this->_db->query($this->_table,['id' => $id]);

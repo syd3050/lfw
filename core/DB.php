@@ -239,6 +239,52 @@ class DB
         return $this->_query($sql, $pdo_parameters);
     }
 
+    /**
+     * $conditions = ['id',[1,2,3,4,5]];
+     * $params = [
+     *      ['name'=>'abc','title'=>'123'],['name'=>'efg','title'=>'256'],
+     * ];
+     * set name case id
+     *     when 1 then 'abc'
+     *     when 2 then 'efg'
+     * end,
+     * set title case id
+     *     when 1 then '123'
+     *     when 2 then '256'
+     * end,
+     * ...
+     */
+    public function updateBatch($table,$params,$conditions)
+    {
+        $table = $this->format_table_name($table);
+        list($condition,$values) = $conditions;
+        $parameters = [];
+        $columnArr = array_keys($params[0]);
+        $case = [];
+        $i = 0;
+        foreach ($params as $param) {
+            foreach ($param as $column => $v) {
+                $case[$column][] = "WHEN :{$column}_{$i}_cd  THEN :{$column}_{$i}_v ";
+                $parameters[":{$column}_{$i}_cd"]  = $values[$i];
+                $parameters[":{$column}_{$i}_v"]   = $v;
+            }
+            $i++;
+        }
+        $sql = "UPDATE {$table} SET ";
+        foreach ($columnArr as $column) {
+            $caseStr = implode(' ',$case[$column]);
+            $sql .= "`".$column."`= case ".$condition." {$caseStr} end,";
+        }
+        $sql = rtrim($sql,',');
+        foreach ($values as $k=>$v){
+            $values[$k] = ":$v";
+            $parameters[":$v"] = $v;
+        }
+        $ids = implode(',', $values);
+        $sql .= " WHERE $condition IN ($ids)";
+        return $this->_query($sql,$parameters);
+    }
+
     public function insert($table, $parameters=[])
     {
         $table = $this->format_table_name($table);
@@ -255,11 +301,41 @@ class DB
         $this->sth = $this->dbh->prepare($sql);
         $this->watchException($this->sth->execute($parameters));
         $id = $this->dbh->lastInsertId();
-        if(empty($id)) {
-            return $this->sth->rowCount();
-        } else {
-            return $id;
+        return $id;
+    }
+
+    public function insertBatch($table, $data)
+    {
+        $count = count($data);
+        if($count > 2000)
+            throw new Exception('最多只支持批量插入2000条记录');
+        $table = $this->format_table_name($table);
+        $fields = [];
+        $sample = $data[0];
+        $columns = [];
+        foreach ( $sample as $field => $value){
+            $fields[] = '`'.$field.'`';
+            $columns[] = $field;
         }
+        $columnStr = '('.implode(",", $fields).')';
+        $i = 0;
+        $values = '';
+        $parameters = [];
+        while ($i < $count) {
+            $values .= '(';
+            foreach ($columns as $column) {
+                $values .= ":{$i}_{$column},";
+                $parameters["{$i}_{$column}"] = $data[$i][$column];
+            }
+            $values = rtrim($values,',').'),';
+            $i++;
+        }
+        $values = rtrim($values,',');
+        $sql = "INSERT INTO $table $columnStr VALUES $values";
+        $this->lastSQL = $sql;
+        $this->sth = $this->dbh->prepare($sql);
+        $this->watchException($this->sth->execute($parameters));
+        return $this->sth->rowCount();
     }
 
     public function execute($sql,$parameters=[])
