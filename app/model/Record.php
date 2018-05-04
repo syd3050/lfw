@@ -9,7 +9,6 @@
 namespace app\model;
 
 
-class Record extends BaseModel
-{
+class Record extends BaseModel {
 
 }

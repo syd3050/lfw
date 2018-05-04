@@ -17,5 +17,8 @@ class Type
     const SUCCESS = 1;
     const FAIL = 0;
 
+    const D_ENABLE = 1;
+    const D_DISABLE = 0;
+
     const K_NAMESPACE = 'namespace';
 }

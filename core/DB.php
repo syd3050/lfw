@@ -177,21 +177,37 @@ class DB
         return $this->sth->fetch(\PDO::FETCH_COLUMN, $position);
     }
 
+  /**
+   * $conditions = [ 'status'=>['=',123],'name'=>['like','%123%'] ];
+   * @param $conditions
+   * @return array
+   */
     private function _conditionParse($conditions)
     {
-        if(empty($conditions))
-            return ['',[]];
-        $params = [];
-        $cond_keys = array_keys($conditions);
-        foreach ($cond_keys as $k => $cond_key) {
-            list($opt,$v) = $conditions[$cond_key];
-            $params[$cond_key] = $v;
-            //构建查询条件数组
-            $cond_keys[$k] = $cond_key." $opt :$cond_key";
-        }
-        //构建查询条件
-        $condition = ' AND '.implode(' AND ',$cond_keys);
-        return [$condition, $params];
+      if(empty($conditions))
+        return ['',[]];
+      $params = [];
+      $limit = '';
+      if(isset($conditions['pageNo'])) {
+        $pageNo = $conditions['pageNo'][1];
+        $pageSize = isset($conditions['pageSize']) ? intval($conditions['pageSize'][1]) : 10;
+        $pageBegin = (intval($pageNo) - 1) * $pageSize;
+        $limit = " limit {$pageBegin},{$pageSize}";
+        unset($conditions['pageNo']);
+        unset($conditions['pageSize']);
+      }
+      /* $cond_keys = ['status','name'] */
+      $cond_keys = array_keys($conditions);
+      foreach ($cond_keys as $k => $cond_key) {
+        /* $opt='='; $v=123; */
+        list($opt,$v) = $conditions[$cond_key];
+        $params[$cond_key] = $v;
+        //构建查询条件数组
+        $cond_keys[$k] = $cond_key." $opt :$cond_key";
+      }
+      //构建查询条件
+      $condition = ' AND '.implode(' AND ',$cond_keys).$limit;
+      return [$condition, $params];
     }
 
     public function delete($table,$conditions)
